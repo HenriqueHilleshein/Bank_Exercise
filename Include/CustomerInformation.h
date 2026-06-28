@@ -7,6 +7,6 @@ struct CustomerInformation {
     std::string LastName;
 };
 
-nlohmann::json customerInformation_to_json(const CustomerInformation& a) {
+inline nlohmann::json customerInformation_to_json(const CustomerInformation& a) {
     return {{"firstName", a.FirstName}, {"lastName", a.LastName}};
 };

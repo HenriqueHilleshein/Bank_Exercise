@@ -1,4 +1,4 @@
-#include <Account.h>
+﻿#include <Account.h>
 
 Account::Account(double balance, AccountId accountId)
     : _balance(balance), _accountId(accountId)
@@ -17,11 +17,16 @@ void Account::deposit(double amount)
 
 bool Account::withdraw(double amount)
 {
-    if(_balance < amount){
+    if (_balance < amount) {
         return false;
     }
     _balance -= amount;
     return true;
+}
+
+AccountId Account::getAccountId() const
+{
+    return _accountId;
 }
 
 nlohmann::json Account::getAccountDetails() const

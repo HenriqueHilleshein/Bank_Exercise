@@ -1,4 +1,5 @@
-#include <AccountService.h>
+﻿#include <AccountService.h>
+#include <ITransaction.h>
 #include <stdexcept>
 
 AccountService::AccountService(IDBConnection* dbConnection)
@@ -58,58 +59,99 @@ AccountId AccountService::getAccountIdWithCustomerInformation(const CustomerInfo
 
 void AccountService::depositToAccount(const int uniqueIdentifier, const double amount) const
 {
-    std::unique_ptr<IAccount> account;
-    DBOperationResult result = _dbConnection->getAccount(uniqueIdentifier, account);
+    std::unique_ptr<ITransaction> transaction;
+    DBOperationResult result = _dbConnection->beginTransaction(transaction);
     if (result != DBOperationResult::Success) {
-        throw std::runtime_error("Failed to get account for deposit");
+        throw std::runtime_error("Failed to begin transaction for deposit");
     }
-    
+
+    std::unique_ptr<IAccount> account;
+    result = transaction->getForUpdate(uniqueIdentifier, account);
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to lock account for deposit");
+    }
+
     account->deposit(amount);
-    result = _dbConnection->updateAccountBalance(*account);
+    result = transaction->updateAccountBalance(*account);
     if (result != DBOperationResult::Success) {
         throw std::runtime_error("Failed to update account balance after deposit");
+    }
+
+    result = transaction->commit();
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to commit deposit transaction");
     }
 }
 
 bool AccountService::withdrawFromAccount(const int uniqueIdentifier, const double amount) const
 {
-    std::unique_ptr<IAccount> account;
-    DBOperationResult result = _dbConnection->getAccount(uniqueIdentifier, account);
+    std::unique_ptr<ITransaction> transaction;
+    DBOperationResult result = _dbConnection->beginTransaction(transaction);
     if (result != DBOperationResult::Success) {
-        throw std::runtime_error("Failed to get account for withdrawal");
+        throw std::runtime_error("Failed to begin transaction for withdrawal");
     }
-    
+
+    std::unique_ptr<IAccount> account;
+    result = transaction->getForUpdate(uniqueIdentifier, account);
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to lock account for withdrawal");
+    }
+
     bool success = account->withdraw(amount);
-    if (success) {
-        result = _dbConnection->updateAccountBalance(*account);
-        if (result != DBOperationResult::Success) {
-            throw std::runtime_error("Failed to update account balance after withdrawal");
-        }
+    if (!success) {
+        return false;
     }
-    return success;
+
+    result = transaction->updateAccountBalance(*account);
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to update account balance after withdrawal");
+    }
+
+    result = transaction->commit();
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to commit withdrawal transaction");
+    }
+
+    return true;
 }
 
 void AccountService::transferBetweenAccounts(const int fromUniqueIdentifier, const int toUniqueIdentifier, const double amount) const
 {
-    std::unique_ptr<IAccount> fromAccount;
-    std::unique_ptr<IAccount> toAccount;
-    
-    DBOperationResult result = _dbConnection->getAccount(fromUniqueIdentifier, fromAccount);
+    std::unique_ptr<ITransaction> transaction;
+    DBOperationResult result = _dbConnection->beginTransaction(transaction);
     if (result != DBOperationResult::Success) {
-        throw std::runtime_error("Failed to get source account for transfer");
-    }
-    
-    result = _dbConnection->getAccount(toUniqueIdentifier, toAccount);
-    if (result != DBOperationResult::Success) {
-        throw std::runtime_error("Failed to get destination account for transfer");
+        throw std::runtime_error("Failed to begin transaction for transfer");
     }
 
-    if (fromAccount->withdraw(amount)) {
-        toAccount->deposit(amount);
-        result = _dbConnection->updateAccountsBalance(*fromAccount, *toAccount);
-        if (result != DBOperationResult::Success) {
-            throw std::runtime_error("Failed to update account balances after transfer");
-        }
+    std::unique_ptr<IAccount> fromAccount;
+    result = transaction->getForUpdate(fromUniqueIdentifier, fromAccount);
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to lock source account for transfer");
+    }
+
+    std::unique_ptr<IAccount> toAccount;
+    result = transaction->getForUpdate(toUniqueIdentifier, toAccount);
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to lock destination account for transfer");
+    }
+
+    if (!fromAccount->withdraw(amount)) {
+        throw std::runtime_error("Insufficient funds for transfer");
+    }
+
+    toAccount->deposit(amount);
+    result = transaction->updateAccountBalance(*fromAccount);
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to update source account balance after transfer");
+    }
+
+    result = transaction->updateAccountBalance(*toAccount);
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to update destination account balance after transfer");
+    }
+
+    result = transaction->commit();
+    if (result != DBOperationResult::Success) {
+        throw std::runtime_error("Failed to commit transfer transaction");
     }
 }
-
