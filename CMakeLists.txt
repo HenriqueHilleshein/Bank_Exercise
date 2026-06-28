@@ -14,7 +14,7 @@ add_executable(Bank_Exercise
 
 target_include_directories(Bank_Exercise
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/Include
 )
 
 include(FetchContent)
