@@ -117,6 +117,10 @@ bool AccountService::withdrawFromAccount(const int uniqueIdentifier, const doubl
 
 void AccountService::transferBetweenAccounts(const int fromUniqueIdentifier, const int toUniqueIdentifier, const double amount) const
 {
+    if (fromUniqueIdentifier == toUniqueIdentifier) {
+        throw std::runtime_error("Cannot transfer to the same account");
+    }
+
     std::unique_ptr<ITransaction> transaction;
     DBOperationResult result = _dbConnection->beginTransaction(transaction);
     if (result != DBOperationResult::Success) {

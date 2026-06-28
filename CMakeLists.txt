@@ -35,8 +35,42 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(httplib)
 
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0
+)
+FetchContent_MakeAvailable(googletest)
+
 target_link_libraries(Bank_Exercise PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(Bank_Exercise PRIVATE httplib::httplib)
 
 include(CTest)
 enable_testing()
+
+# Unit Tests
+add_executable(Bank_Exercise_Tests
+    Tests/AccountTests.cpp
+    Tests/CustomerAccountTests.cpp
+    Tests/EnterpriseAccountTests.cpp
+    Tests/AccountServiceTests.cpp
+    Tests/FakeDBConnectionTests.cpp
+    Source/Account.cpp
+    Source/CustomerAccount.cpp
+    Source/EnterpriseAccount.cpp
+    Source/FakeDBConnection.cpp
+    Source/AccountService.cpp
+)
+
+target_include_directories(Bank_Exercise_Tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Include
+)
+
+target_link_libraries(Bank_Exercise_Tests 
+    PRIVATE 
+        gtest_main
+        nlohmann_json::nlohmann_json
+)
+
+add_test(NAME Bank_Exercise_Tests COMMAND Bank_Exercise_Tests)
