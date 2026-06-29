@@ -1,0 +1,70 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam ArrowColor #555
+skinparam defaultFontSize 12
+left to right direction
+
+title Bank Exercise — Component Architecture
+
+package "API Layer" {
+  [Server]
+  [ApiRequestValidation]
+}
+
+package "Service Layer" {
+  interface "IAccountService" as IAS #LightBlue
+  [AccountService]
+}
+
+package "Domain Layer" {
+  interface "IAccount" as IA #LightBlue
+  [Account]
+  [CustomerAccount]
+  [EnterpriseAccount]
+}
+
+package "Persistence Layer" {
+  interface "IDBConnection" as IDBC #LightBlue
+  interface "ITransaction" as ITX #LightBlue
+  [FakeDBConnection] #LightYellow
+  note right of FakeDBConnection
+    Replaceable.
+    Swap for SqlDBConnection
+    by changing main.cpp only.
+  end note
+}
+
+[Server] --> IAS : depends on interface\n(not concrete class)
+[Server] ..> [ApiRequestValidation]
+[AccountService] ..|> IAS
+[AccountService] --> IDBC : depends on interface\n(not concrete class)
+IDBC ..> ITX : beginTransaction returns
+
+[FakeDBConnection] ..|> IDBC
+[FakeDBConnection] ..|> ITX : inner FakeTransaction
+
+[Account] ..|> IA
+[CustomerAccount] --|> [Account]
+[EnterpriseAccount] --|> [Account]
+
+note bottom of IAS
+  <b>Seam 1</b>
+  Server knows nothing about
+  AccountService internals.
+end note
+
+note bottom of IDBC
+  <b>Seam 2</b>
+  AccountService knows nothing about
+  storage. FakeDB or SQL — same code.
+end note
+
+note bottom of IA
+  <b>Seam 3</b>
+  Callers work with IAccount.
+  CustomerAccount and EnterpriseAccount
+  are invisible to the service layer.
+end note
+
+@enduml

@@ -1,0 +1,74 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontSize 12
+
+title Deposit Flow — Illustrating Interface Agnosticism
+
+actor Client
+participant "Server" as SRV
+participant "ApiRequestValidation" as VAL
+participant "IAccountService" as SVC #LightBlue
+participant "IDBConnection" as DB #LightBlue
+participant "ITransaction" as TXN #LightBlue
+participant "IAccount" as ACC #LightBlue
+
+note over SRV
+  Server holds IAccountService*.
+  It never sees AccountService,
+  FakeDBConnection, or any account type.
+end note
+
+Client -> SRV : POST /accounts/{id}/deposit\n{ "amount": 500 }
+SRV -> VAL : parseAccountAmountRequest(body)
+VAL --> SRV : amount = 500 (validated > 0)
+
+SRV -> SVC : depositToAccount(id, 500)
+
+note over SVC
+  AccountService holds IDBConnection*.
+  It never sees FakeDBConnection or
+  any concrete storage class.
+end note
+
+SVC -> DB : beginTransaction()
+DB --> SVC : ITransaction&
+
+note over DB, TXN
+  FakeDBConnection returns FakeTransaction.
+  SqlDBConnection would execute BEGIN
+  and return SqlTransaction.
+  AccountService code is identical.
+end note
+
+SVC -> TXN : getForUpdate(id)
+note right of TXN
+  FakeDB: map lookup
+  SQL: SELECT ... FOR UPDATE
+end note
+TXN --> SVC : IAccount&
+
+note over SVC, ACC
+  AccountService holds IAccount*.
+  It never sees CustomerAccount
+  or EnterpriseAccount.
+end note
+
+SVC -> ACC : deposit(500)
+ACC --> SVC : (balance updated in memory)
+
+SVC -> TXN : updateAccountBalance(account)
+note right of TXN
+  FakeDB: update balance in map
+  SQL: UPDATE accounts SET balance=...
+end note
+
+SVC -> TXN : commit()
+note right of TXN
+  FakeDB: discard snapshot
+  SQL: COMMIT
+end note
+
+SVC --> SRV : (returns)
+SRV --> Client : { "success": true }
+
+@enduml

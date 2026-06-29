@@ -1,0 +1,118 @@
+@startuml
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 12
+
+title Bank Exercise — Class and Interface View
+
+together {
+  interface IAccount {
+    +{abstract} getBalance(): double
+    +{abstract} deposit(amount: double)
+    +{abstract} withdraw(amount: double): bool
+    +{abstract} getAccountId(): AccountId
+    +{abstract} getAccountDetails(): json
+  }
+
+  class Account {
+    -_balance: double
+    -_accountId: AccountId
+  }
+
+  class CustomerAccount {
+    -_customerInformation
+  }
+
+  class EnterpriseAccount {
+    -_enterpriseInformation
+  }
+
+  IAccount <|.. Account
+  Account <|-- CustomerAccount
+  Account <|-- EnterpriseAccount
+}
+
+struct AccountId {
+  +Identifier (alias: int — change here for IBAN)
+  +CreationTimestamp (alias: int64_t)
+  +UniqueIdentifier: Identifier
+  +CreationTime: CreationTimestamp
+}
+
+note right of AccountId
+  All interfaces and route parsing use
+  AccountId::Identifier instead of raw int.
+  Changing to string for IBAN requires
+  only one line here + one parse helper.
+end note
+
+interface IAccountService {
+  +{abstract} getAccount(id): IAccount
+  +{abstract} createCustomerAccount(info): AccountId
+  +{abstract} createEnterpriseAccount(info): AccountId
+  +{abstract} depositToAccount(id, amount)
+  +{abstract} withdrawFromAccount(id, amount): bool
+  +{abstract} transferBetweenAccounts(from, to, amount)
+}
+
+class AccountService {
+  -_dbConnection: IDBConnection*
+}
+IAccountService <|.. AccountService
+
+class Server {
+  -_accountService: IAccountService*
+}
+
+Server --> IAccountService : "uses (seam 1)\nServer knows only\nthis interface"
+
+package "Persistence Contract" {
+  interface IDBConnection {
+    +{abstract} getAccount(id, outAccount)
+    +{abstract} createCustomerAccount(info, outId)
+    +{abstract} createEnterpriseAccount(info, outId)
+    +{abstract} beginTransaction(outTxn)
+  }
+
+  interface ITransaction {
+    +{abstract} getForUpdate(id, outAccount)
+    +{abstract} updateAccountBalance(account)
+    +{abstract} commit()
+    +{abstract} rollback()
+  }
+
+  IDBConnection ..> ITransaction : beginTransaction() returns
+
+  note bottom of IDBConnection
+    <b>Seam 2 — the key replacement point</b>
+
+    To replace FakeDBConnection with SQL:
+      1. class SqlDBConnection : public IDBConnection
+      2. class SqlTransaction : public ITransaction
+      3. Change one line in main.cpp
+
+    AccountService and all unit tests are
+    completely unchanged.
+  end note
+}
+
+AccountService --> IDBConnection : "uses (seam 2)\nAccountService knows only\nthis interface"
+
+class FakeDBConnection {
+  -FakeTransaction (inner)
+  -snapshot maps for rollback
+}
+IDBConnection <|.. FakeDBConnection
+ITransaction <|.. FakeDBConnection : "inner FakeTransaction"
+
+/' Commented-out SQL example — what a real backend looks like:
+class SqlDBConnection {
+  + implements IDBConnection
+  - SqlTransaction wraps BEGIN / COMMIT / ROLLBACK
+  - getForUpdate uses SELECT ... FOR UPDATE
+}
+IDBConnection <|.. SqlDBConnection
+ITransaction <|.. SqlDBConnection
+'/
+
+@enduml
