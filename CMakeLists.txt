@@ -50,6 +50,7 @@ enable_testing()
 
 # Unit Tests
 add_executable(Bank_Exercise_Tests
+    UnitTests/ApiHttpResponseTests.cpp
     UnitTests/ApiRequestValidationTests.cpp
     UnitTests/AccountTests.cpp
     UnitTests/CustomerAccountTests.cpp

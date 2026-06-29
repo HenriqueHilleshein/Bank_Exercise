@@ -3,12 +3,23 @@
 #include <FakeDBConnection.h>
 #include <CustomerInformation.h>
 #include <EnterpriseInformation.h>
+#include <functional>
 
 class AccountServiceTests : public ::testing::Test {
 protected:
     FakeDBConnection db;
     AccountService service{&db};
 };
+
+static void expectRuntimeErrorMessage(const std::function<void()>& action, const std::string& expectedMessage)
+{
+    try {
+        action();
+        FAIL() << "Expected runtime_error";
+    } catch (const std::runtime_error& error) {
+        EXPECT_EQ(error.what(), expectedMessage);
+    }
+}
 
 // Test customer account creation
 TEST_F(AccountServiceTests, CreateCustomerAccountReturnsValidAccountId) {
@@ -65,7 +76,7 @@ TEST_F(AccountServiceTests, GetAccountReturnsValidAccount) {
 }
 
 TEST_F(AccountServiceTests, GetAccountThrowsOnNonExistentAccount) {
-    EXPECT_THROW(service.getAccount(9999), std::runtime_error);
+    expectRuntimeErrorMessage([this]() { service.getAccount(9999); }, "Account not found");
 }
 
 // Test getAccountIdWithCustomerInformation
@@ -81,7 +92,7 @@ TEST_F(AccountServiceTests, GetAccountIdWithCustomerInformationReturnsCorrectId)
 TEST_F(AccountServiceTests, GetAccountIdWithCustomerInformationThrowsOnNotFound) {
     CustomerInformation info{"NonExistent", "User"};
     
-    EXPECT_THROW(service.getAccountIdWithCustomerInformation(info), std::runtime_error);
+    expectRuntimeErrorMessage([this, &info]() { service.getAccountIdWithCustomerInformation(info); }, "Account not found");
 }
 
 // Test getAccountIdWithEnterpriseInformation
@@ -97,7 +108,7 @@ TEST_F(AccountServiceTests, GetAccountIdWithEnterpriseInformationReturnsCorrectI
 TEST_F(AccountServiceTests, GetAccountIdWithEnterpriseInformationThrowsOnNotFound) {
     EnterpriseInformation info{"9999999-9", "NonExistent"};
     
-    EXPECT_THROW(service.getAccountIdWithEnterpriseInformation(info), std::runtime_error);
+    expectRuntimeErrorMessage([this, &info]() { service.getAccountIdWithEnterpriseInformation(info); }, "Account not found");
 }
 
 // Test deposit
@@ -134,7 +145,7 @@ TEST_F(AccountServiceTests, DepositZeroAmount) {
 }
 
 TEST_F(AccountServiceTests, DepositThrowsOnNonExistentAccount) {
-    EXPECT_THROW(service.depositToAccount(9999, 100.0), std::runtime_error);
+    expectRuntimeErrorMessage([this]() { service.depositToAccount(9999, 100.0); }, "Account not found");
 }
 
 // Test withdraw
@@ -196,7 +207,7 @@ TEST_F(AccountServiceTests, WithdrawZeroAmount) {
 }
 
 TEST_F(AccountServiceTests, WithdrawThrowsOnNonExistentAccount) {
-    EXPECT_THROW(service.withdrawFromAccount(9999, 100.0), std::runtime_error);
+    expectRuntimeErrorMessage([this]() { service.withdrawFromAccount(9999, 100.0); }, "Account not found");
 }
 
 // Test transfer
@@ -285,7 +296,7 @@ TEST_F(AccountServiceTests, TransferThrowsOnNonExistentFromAccount) {
     CustomerInformation info{"Jane", "Smith"};
     AccountId id2 = service.createCustomerAccount(info);
     
-    EXPECT_THROW(service.transferBetweenAccounts(9999, id2.UniqueIdentifier, 100.0), std::runtime_error);
+    expectRuntimeErrorMessage([this, &id2]() { service.transferBetweenAccounts(9999, id2.UniqueIdentifier, 100.0); }, "Account not found");
 }
 
 TEST_F(AccountServiceTests, TransferThrowsOnNonExistentToAccount) {
@@ -293,7 +304,7 @@ TEST_F(AccountServiceTests, TransferThrowsOnNonExistentToAccount) {
     AccountId id1 = service.createCustomerAccount(info);
     service.depositToAccount(id1.UniqueIdentifier, 1000.0);
     
-    EXPECT_THROW(service.transferBetweenAccounts(id1.UniqueIdentifier, 9999, 100.0), std::runtime_error);
+    expectRuntimeErrorMessage([this, &id1]() { service.transferBetweenAccounts(id1.UniqueIdentifier, 9999, 100.0); }, "Account not found");
 }
 
 // Test complex scenarios

@@ -12,6 +12,10 @@ std::unique_ptr<IAccount> AccountService::getAccount(const int uniqueIdentifier)
     std::unique_ptr<IAccount> account;
     DBOperationResult result = _dbConnection->getAccount(uniqueIdentifier, account);
     if (result != DBOperationResult::Success) {
+        if (result == DBOperationResult::AccountNotFound) {
+            throw std::runtime_error("Account not found");
+        }
+
         throw std::runtime_error("Failed to get account");
     }
     return account;
@@ -42,6 +46,10 @@ AccountId AccountService::getAccountIdWithEnterpriseInformation(const Enterprise
     AccountId accountId{};
     DBOperationResult result = _dbConnection->getAccountIdWithEnterpriseInformation(enterpriseInformation, accountId);
     if (result != DBOperationResult::Success) {
+        if (result == DBOperationResult::AccountNotFound) {
+            throw std::runtime_error("Account not found");
+        }
+
         throw std::runtime_error("Failed to get enterprise account ID");
     }
     return accountId;
@@ -52,6 +60,10 @@ AccountId AccountService::getAccountIdWithCustomerInformation(const CustomerInfo
     AccountId accountId{};
     DBOperationResult result = _dbConnection->getAccountIdWithCustomerInformation(customerInformation, accountId);
     if (result != DBOperationResult::Success) {
+        if (result == DBOperationResult::AccountNotFound) {
+            throw std::runtime_error("Account not found");
+        }
+
         throw std::runtime_error("Failed to get customer account ID");
     }
     return accountId;
@@ -68,6 +80,10 @@ void AccountService::depositToAccount(const int uniqueIdentifier, const double a
     std::unique_ptr<IAccount> account;
     result = transaction->getForUpdate(uniqueIdentifier, account);
     if (result != DBOperationResult::Success) {
+        if (result == DBOperationResult::AccountNotFound) {
+            throw std::runtime_error("Account not found");
+        }
+
         throw std::runtime_error("Failed to lock account for deposit");
     }
 
@@ -94,6 +110,10 @@ bool AccountService::withdrawFromAccount(const int uniqueIdentifier, const doubl
     std::unique_ptr<IAccount> account;
     result = transaction->getForUpdate(uniqueIdentifier, account);
     if (result != DBOperationResult::Success) {
+        if (result == DBOperationResult::AccountNotFound) {
+            throw std::runtime_error("Account not found");
+        }
+
         throw std::runtime_error("Failed to lock account for withdrawal");
     }
 
@@ -130,12 +150,20 @@ void AccountService::transferBetweenAccounts(const int fromUniqueIdentifier, con
     std::unique_ptr<IAccount> fromAccount;
     result = transaction->getForUpdate(fromUniqueIdentifier, fromAccount);
     if (result != DBOperationResult::Success) {
+        if (result == DBOperationResult::AccountNotFound) {
+            throw std::runtime_error("Account not found");
+        }
+
         throw std::runtime_error("Failed to lock source account for transfer");
     }
 
     std::unique_ptr<IAccount> toAccount;
     result = transaction->getForUpdate(toUniqueIdentifier, toAccount);
     if (result != DBOperationResult::Success) {
+        if (result == DBOperationResult::AccountNotFound) {
+            throw std::runtime_error("Account not found");
+        }
+
         throw std::runtime_error("Failed to lock destination account for transfer");
     }
 

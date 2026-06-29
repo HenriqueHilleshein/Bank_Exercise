@@ -1,5 +1,6 @@
 #include <Server.h>
 #include <ApiRequestValidation.h>
+#include <ApiHttpResponse.h>
 #include <nlohmann/json.hpp>
 #include <iostream>
 
@@ -40,7 +41,7 @@ void Server::setupRoutes()
             std::unique_ptr<IAccount> account = _accountService->getAccount(uniqueIdentifier);
             res.set_content(account->getAccountDetails().dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 404;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
@@ -52,7 +53,7 @@ void Server::setupRoutes()
             AccountId accountId = _accountService->createEnterpriseAccount(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 400;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
@@ -64,7 +65,7 @@ void Server::setupRoutes()
             AccountId accountId = _accountService->createCustomerAccount(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 400;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
@@ -76,7 +77,7 @@ void Server::setupRoutes()
             AccountId accountId = _accountService->getAccountIdWithEnterpriseInformation(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 404;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
@@ -88,7 +89,7 @@ void Server::setupRoutes()
             AccountId accountId = _accountService->getAccountIdWithCustomerInformation(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 404;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
@@ -100,7 +101,7 @@ void Server::setupRoutes()
             _accountService->depositToAccount(uniqueIdentifier, request.amount);
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 400;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
@@ -117,7 +118,7 @@ void Server::setupRoutes()
             }
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 400;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
@@ -129,7 +130,7 @@ void Server::setupRoutes()
             _accountService->transferBetweenAccounts(fromUniqueIdentifier, request.toUniqueIdentifier, request.amount);
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
         } catch (const std::exception& ex) {
-            res.status = 400;
+            res.status = ApiHttpResponse::statusCodeForException(ex);
             res.set_content(nlohmann::json{{"error", ex.what()}}.dump(), "application/json");
         }
     });
