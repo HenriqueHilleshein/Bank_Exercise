@@ -16,7 +16,7 @@ Response:
 - `200 OK`
 - body: `OK`
 
-### GET /account/{id}
+### GET /accounts/{id}
 Retrieve account details by unique account identifier.
 
 Request:
@@ -43,7 +43,7 @@ Example response:
 
 For enterprise accounts, the response includes `enterpriseInformation` instead of `customerInformation`.
 
-### POST /enterprise-account
+### POST /accounts/enterprises
 Create a new enterprise account.
 
 Request body:
@@ -66,7 +66,7 @@ Response:
 }
 ```
 
-### POST /customer-account
+### POST /accounts/customers
 Create a new customer account.
 
 Request body:
@@ -89,7 +89,7 @@ Response:
 }
 ```
 
-### POST /enterprise-account-id
+### POST /accounts/enterprises/lookup
 Find an enterprise account ID by enterprise information.
 
 Request body:
@@ -111,7 +111,7 @@ Response:
 }
 ```
 
-### POST /customer-account-id
+### POST /accounts/customers/lookup
 Find a customer account ID by customer information.
 
 Request body:
@@ -134,13 +134,12 @@ Response:
 }
 ```
 
-### POST /deposit
+### POST /accounts/{id}/deposit
 Deposit money into an account.
 
 Request body:
 ```json
 {
-  "uniqueIdentifier": 1002,
   "amount": 50.0
 }
 ```
@@ -154,13 +153,12 @@ Response:
 }
 ```
 
-### POST /withdraw
+### POST /accounts/{id}/withdraw
 Withdraw money from an account.
 
 Request body:
 ```json
 {
-  "uniqueIdentifier": 1002,
   "amount": 25.0
 }
 ```
@@ -182,13 +180,12 @@ Response:
 }
 ```
 
-### POST /transfer
+### POST /accounts/{id}/transfer
 Transfer money between two accounts.
 
 Request body:
 ```json
 {
-  "fromUniqueIdentifier": 1002,
   "toUniqueIdentifier": 1001,
   "amount": 20.0
 }

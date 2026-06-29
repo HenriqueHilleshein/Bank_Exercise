@@ -558,7 +558,7 @@
                         throw new Error('Please enter a valid account ID');
                     }
 
-                    const account = await this.makeRequest('GET', `/account/${id}`);
+                    const account = await this.makeRequest('GET', `/accounts/${id}`);
                     this.openedAccount = account;
                     this.lookupAccountId = id;
                     this.resetOperationForms();
@@ -573,7 +573,7 @@
 
                     this.creating = true;
                     try {
-                        const response = await this.makeRequest('POST', '/customer-account', {
+                        const response = await this.makeRequest('POST', '/accounts/customers', {
                             firstName: this.customerForm.firstName,
                             lastName: this.customerForm.lastName
                         });
@@ -597,7 +597,7 @@
 
                     this.creating = true;
                     try {
-                        const response = await this.makeRequest('POST', '/enterprise-account', {
+                        const response = await this.makeRequest('POST', '/accounts/enterprises', {
                             yTunnus: this.enterpriseForm.yTunnus,
                             companyName: this.enterpriseForm.companyName
                         });
@@ -638,7 +638,7 @@
 
                     this.retrieving = true;
                     try {
-                        const response = await this.makeRequest('POST', '/customer-account-id', {
+                        const response = await this.makeRequest('POST', '/accounts/customers/lookup', {
                             firstName: this.customerLookup.firstName,
                             lastName: this.customerLookup.lastName
                         });
@@ -660,7 +660,7 @@
 
                     this.retrieving = true;
                     try {
-                        const response = await this.makeRequest('POST', '/enterprise-account-id', {
+                        const response = await this.makeRequest('POST', '/accounts/enterprises/lookup', {
                             yTunnus: this.enterpriseLookup.yTunnus,
                             companyName: this.enterpriseLookup.companyName
                         });
@@ -700,8 +700,7 @@
 
                     this.depositing = true;
                     try {
-                        await this.makeRequest('POST', '/deposit', {
-                            uniqueIdentifier: this.accountIdValue(this.openedAccount.accountId),
+                        await this.makeRequest('POST', `/accounts/${this.accountIdValue(this.openedAccount.accountId)}/deposit`, {
                             amount: this.depositAmount
                         });
 
@@ -728,8 +727,7 @@
 
                     this.withdrawing = true;
                     try {
-                        await this.makeRequest('POST', '/withdraw', {
-                            uniqueIdentifier: this.accountIdValue(this.openedAccount.accountId),
+                        await this.makeRequest('POST', `/accounts/${this.accountIdValue(this.openedAccount.accountId)}/withdraw`, {
                             amount: this.withdrawAmount
                         });
 
@@ -756,8 +754,7 @@
 
                     this.transferring = true;
                     try {
-                        await this.makeRequest('POST', '/transfer', {
-                            fromUniqueIdentifier: this.accountIdValue(this.openedAccount.accountId),
+                        await this.makeRequest('POST', `/accounts/${this.accountIdValue(this.openedAccount.accountId)}/transfer`, {
                             toUniqueIdentifier: this.transferForm.toAccountId,
                             amount: this.transferForm.amount
                         });

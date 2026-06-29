@@ -33,7 +33,7 @@ void Server::setupRoutes()
         res.set_content("OK", "text/plain");
     });
 
-    svr.Get(R"(/account/(\d+))", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Get(R"(/accounts/(\d+))", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             int uniqueIdentifier = std::stoi(req.matches[1]);
             std::unique_ptr<IAccount> account = _accountService->getAccount(uniqueIdentifier);
@@ -44,7 +44,7 @@ void Server::setupRoutes()
         }
     });
 
-    svr.Post("/enterprise-account", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/accounts/enterprises", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             auto json = nlohmann::json::parse(req.body);
             if (!json.contains("yTunnus") || !json.contains("companyName")) {
@@ -65,7 +65,7 @@ void Server::setupRoutes()
         }
     });
 
-    svr.Post("/customer-account", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/accounts/customers", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             auto json = nlohmann::json::parse(req.body);
             if (!json.contains("firstName") || !json.contains("lastName")) {
@@ -86,7 +86,7 @@ void Server::setupRoutes()
         }
     });
 
-    svr.Post("/enterprise-account-id", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/accounts/enterprises/lookup", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             auto json = nlohmann::json::parse(req.body);
             if (!json.contains("yTunnus")) {
@@ -107,7 +107,7 @@ void Server::setupRoutes()
         }
     });
 
-    svr.Post("/customer-account-id", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/accounts/customers/lookup", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             auto json = nlohmann::json::parse(req.body);
             if (!json.contains("firstName") || !json.contains("lastName")) {
@@ -128,16 +128,16 @@ void Server::setupRoutes()
         }
     });
 
-    svr.Post("/deposit", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post(R"(/accounts/(\d+)/deposit)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("uniqueIdentifier") || !json.contains("amount")) {
+            if (!json.contains("amount")) {
                 res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing uniqueIdentifier or amount"}}.dump(), "application/json");
+                res.set_content(nlohmann::json{{"error", "Missing amount"}}.dump(), "application/json");
                 return;
             }
 
-            int uniqueIdentifier = json["uniqueIdentifier"].get<int>();
+            int uniqueIdentifier = std::stoi(req.matches[1]);
             double amount = json["amount"].get<double>();
             _accountService->depositToAccount(uniqueIdentifier, amount);
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
@@ -147,16 +147,16 @@ void Server::setupRoutes()
         }
     });
 
-    svr.Post("/withdraw", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post(R"(/accounts/(\d+)/withdraw)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("uniqueIdentifier") || !json.contains("amount")) {
+            if (!json.contains("amount")) {
                 res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing uniqueIdentifier or amount"}}.dump(), "application/json");
+                res.set_content(nlohmann::json{{"error", "Missing amount"}}.dump(), "application/json");
                 return;
             }
 
-            int uniqueIdentifier = json["uniqueIdentifier"].get<int>();
+            int uniqueIdentifier = std::stoi(req.matches[1]);
             double amount = json["amount"].get<double>();
             bool success = _accountService->withdrawFromAccount(uniqueIdentifier, amount);
             if (!success) {
@@ -171,16 +171,16 @@ void Server::setupRoutes()
         }
     });
 
-    svr.Post("/transfer", [this](const httplib::Request& req, httplib::Response& res) {
+    svr.Post(R"(/accounts/(\d+)/transfer)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("fromUniqueIdentifier") || !json.contains("toUniqueIdentifier") || !json.contains("amount")) {
+            if (!json.contains("toUniqueIdentifier") || !json.contains("amount")) {
                 res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing fromUniqueIdentifier, toUniqueIdentifier or amount"}}.dump(), "application/json");
+                res.set_content(nlohmann::json{{"error", "Missing toUniqueIdentifier or amount"}}.dump(), "application/json");
                 return;
             }
 
-            int fromUniqueIdentifier = json["fromUniqueIdentifier"].get<int>();
+            int fromUniqueIdentifier = std::stoi(req.matches[1]);
             int toUniqueIdentifier = json["toUniqueIdentifier"].get<int>();
             double amount = json["amount"].get<double>();
             _accountService->transferBetweenAccounts(fromUniqueIdentifier, toUniqueIdentifier, amount);

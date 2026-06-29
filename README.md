@@ -137,11 +137,13 @@ The repository includes a simple browser UI in [UI/index.html](UI/index.html) th
 ### Start the UI
 
 ```bash
-cd UI
+cd /path/to/Bank_Exercise
 python3 -m http.server 8000
 ```
 
 Then open `http://localhost:8000` in your browser.
+
+The root `index.html` forwards to the UI automatically, so the server root shows the app instead of a file listing.
 
 ### UI Workflow
 
@@ -164,7 +166,7 @@ curl http://localhost:8080/health
 
 #### 2. Create a Customer Account
 ```bash
-curl -X POST http://localhost:8080/customer-account \
+curl -X POST http://localhost:8080/accounts/customers \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "John",
@@ -174,7 +176,7 @@ curl -X POST http://localhost:8080/customer-account \
 
 #### 3. Create an Enterprise Account
 ```bash
-curl -X POST http://localhost:8080/enterprise-account \
+curl -X POST http://localhost:8080/accounts/enterprises \
   -H "Content-Type: application/json" \
   -d '{
     "yTunnus": "1234567-8",
@@ -184,35 +186,52 @@ curl -X POST http://localhost:8080/enterprise-account \
 
 #### 4. Get Account Details
 ```bash
-curl http://localhost:8080/account/1000
+curl http://localhost:8080/accounts/1000
 ```
 
-#### 5. Deposit Money
+#### 5. Find a Customer Account by Name
 ```bash
-curl -X POST http://localhost:8080/deposit \
+curl -X POST http://localhost:8080/accounts/customers/lookup \
   -H "Content-Type: application/json" \
   -d '{
-    "uniqueIdentifier": 1000,
+    "firstName": "John",
+    "lastName": "Doe"
+  }'
+```
+
+#### 6. Find an Enterprise Account by Details
+```bash
+curl -X POST http://localhost:8080/accounts/enterprises/lookup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "yTunnus": "1234567-8",
+    "companyName": "TechCorp Ltd"
+  }'
+```
+
+#### 7. Deposit Money
+```bash
+curl -X POST http://localhost:8080/accounts/1000/deposit \
+  -H "Content-Type: application/json" \
+  -d '{
     "amount": 500.0
   }'
 ```
 
-#### 6. Withdraw Money
+#### 8. Withdraw Money
 ```bash
-curl -X POST http://localhost:8080/withdraw \
+curl -X POST http://localhost:8080/accounts/1000/withdraw \
   -H "Content-Type: application/json" \
   -d '{
-    "uniqueIdentifier": 1000,
     "amount": 100.0
   }'
 ```
 
-#### 7. Transfer Between Accounts
+#### 9. Transfer Between Accounts
 ```bash
-curl -X POST http://localhost:8080/transfer \
+curl -X POST http://localhost:8080/accounts/1000/transfer \
   -H "Content-Type: application/json" \
   -d '{
-    "fromUniqueIdentifier": 1000,
     "toUniqueIdentifier": 1001,
     "amount": 250.0
   }'

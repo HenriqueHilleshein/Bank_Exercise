@@ -25,20 +25,22 @@ A modern, responsive web-based user interface for the Bank Exercise REST API bui
 
 ### Running the UI
 
-1. Open the `index.html` file in your web browser:
-   - Double-click `index.html` in your file explorer, or
-   - Use a local web server:
+1. Open the project root in your web browser:
+    - Start a local web server from the repository root:
      ```bash
      # Using Python 3
-     python -m http.server 8000
-     # Then visit http://localhost:8000/index.html
+       cd /path/to/Bank_Exercise
+       python -m http.server 8000
+       # Then visit http://localhost:8000
      
      # Using Python 2
-     python -m SimpleHTTPServer 8000
+       python -m SimpleHTTPServer 8000
      
      # Using Node.js http-server
      npx http-server
      ```
+
+    - Or open `UI/index.html` directly if you prefer the UI file itself.
 
 2. Make sure the Bank Exercise server is running:
    ```bash
@@ -109,12 +111,12 @@ A modern, responsive web-based user interface for the Bank Exercise REST API bui
 The UI communicates with these endpoints:
 
 - `GET /health` - Check server status
-- `POST /accounts/create-customer` - Create customer account
-- `POST /accounts/create-enterprise` - Create enterprise account
-- `GET /accounts/{accountId}` - Get account details
-- `POST /accounts/{accountId}/deposit` - Deposit funds
-- `POST /accounts/{accountId}/withdraw` - Withdraw funds
-- `POST /accounts/transfer` - Transfer between accounts
+- `POST /accounts/customers` - Create customer account
+- `POST /accounts/enterprises` - Create enterprise account
+- `GET /accounts/{id}` - Get account details
+- `POST /accounts/{id}/deposit` - Deposit funds
+- `POST /accounts/{id}/withdraw` - Withdraw funds
+- `POST /accounts/{id}/transfer` - Transfer between accounts
 
 ## Styling
 
