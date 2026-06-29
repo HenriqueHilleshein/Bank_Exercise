@@ -16,6 +16,19 @@ void Server::run(const std::string& host, int port)
 
 void Server::setupRoutes()
 {
+    // Set CORS headers on all requests (pre-routing, before any handler)
+    svr.set_pre_routing_handler([](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Accept");
+        return httplib::Server::HandlerResponse::Unhandled;
+    });
+
+    // Handle preflight (OPTIONS) requests
+    svr.Options(R"(/.*)", [](const httplib::Request&, httplib::Response& res) {
+        res.set_content("", "application/json");
+    });
+
     svr.Get("/health", [](const httplib::Request&, httplib::Response& res) {
         res.set_content("OK", "text/plain");
     });
