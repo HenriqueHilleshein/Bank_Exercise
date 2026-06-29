@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.10.0)
 
 project(Bank_Exercise VERSION 0.1.0 LANGUAGES C CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 add_executable(Bank_Exercise
     Source/main.cpp
     Source/Account.cpp
@@ -22,7 +26,7 @@ include(FetchContent)
 FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.3
+    GIT_TAG v3.12.0
 )
 
 FetchContent_MakeAvailable(nlohmann_json)
@@ -30,7 +34,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 FetchContent_Declare(
     httplib
     GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
-    GIT_TAG v0.18.3
+    GIT_TAG v0.48.0
 )
 
 FetchContent_MakeAvailable(httplib)
@@ -38,12 +42,14 @@ FetchContent_MakeAvailable(httplib)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.14.0
+    GIT_TAG v1.17.0
 )
 FetchContent_MakeAvailable(googletest)
 
-target_link_libraries(Bank_Exercise PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(Bank_Exercise PRIVATE httplib::httplib)
+target_link_libraries(Bank_Exercise PRIVATE
+    nlohmann_json::nlohmann_json
+    httplib::httplib
+)
 
 include(CTest)
 enable_testing()
@@ -69,8 +75,8 @@ target_include_directories(Bank_Exercise_Tests
         ${CMAKE_CURRENT_SOURCE_DIR}/Include
 )
 
-target_link_libraries(Bank_Exercise_Tests 
-    PRIVATE 
+target_link_libraries(Bank_Exercise_Tests
+    PRIVATE
         gtest_main
         nlohmann_json::nlohmann_json
 )

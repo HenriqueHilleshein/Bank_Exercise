@@ -250,14 +250,14 @@ cd build
 
 **Expected output:**
 ```
-[==========] Running 112 tests from 5 test suites.
+[==========] Running 117 tests from 7 test suites.
 [----------] Global test environment set-up.
-[----------] 15 tests from AccountTests
+[----------] 17 tests from AccountTests
 [ OK ] AccountTests.DepositIncreasesBalance
 [ OK ] AccountTests.WithdrawDecreasesBalance
 ...
-[==========] 112 tests from 5 test suites ran. (XXX ms total)
-[  PASSED  ] 112 tests.
+[==========] 117 tests from 7 test suites ran. (XXX ms total)
+[  PASSED  ] 117 tests.
 ```
 
 ### Run Specific Test Suite
@@ -298,13 +298,26 @@ ctest --output-on-failure
 
 ## Test Coverage
 
-The project includes **112 comprehensive unit tests** covering:
+The project includes **117 comprehensive unit tests** covering:
 
-- **Account Operations** (15 tests)
+- **API HTTP Response** (3 tests)
+  - Error-to-HTTP response mapping
+  - Bad request handling
+  - Not found handling
+
+- **API Request Validation** (15 tests)
+  - Customer request validation
+  - Enterprise request validation
+  - Deposit/withdraw request validation
+  - Transfer request validation
+  - Invalid JSON and field validation
+
+- **Account Operations** (17 tests)
   - Deposit operations
   - Withdrawal operations
   - Balance queries
-  - Edge cases (zero amounts, insufficient funds)
+  - Constructor edge cases
+  - Decimal precision
 
 - **Customer Account** (11 tests)
   - Account creation
@@ -312,25 +325,26 @@ The project includes **112 comprehensive unit tests** covering:
   - JSON serialization
   - Inherited operations
 
-- **Enterprise Account** (12 tests)
+- **Enterprise Account** (13 tests)
   - Account creation
   - Enterprise information
   - JSON serialization
-  - Large transactions
+  - Large balances
+  - Multiple transactions
 
-- **Database Operations** (32 tests)
+- **Account Service** (32 tests)
+  - Account creation
+  - Deposits and withdrawals
+  - Transfers
+  - Error handling
+  - Customer and enterprise account operations
+
+- **Fake Database Connection** (26 tests)
   - Account CRUD operations
   - Transaction management
-  - Rollback and commit operations
-  - Account ID querying
-
-- **Account Service** (42 tests)
-  - Create accounts
-  - Deposit operations
-  - Withdrawal operations
-  - Money transfers
-  - Error handling
-  - Complex scenarios
+  - Commit and rollback
+  - Account ID generation
+  - Account lookup
 
 ## Architecture
 
