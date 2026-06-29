@@ -118,6 +118,8 @@ The UI communicates with these endpoints:
 - `POST /accounts/{id}/withdraw` - Withdraw funds
 - `POST /accounts/{id}/transfer` - Transfer between accounts
 
+The opened account view also shows the account creation date by formatting the timestamp returned in `accountId.CreationTime`.
+
 ## Styling
 
 The UI uses:

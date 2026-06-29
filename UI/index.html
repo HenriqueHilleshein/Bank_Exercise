@@ -324,6 +324,10 @@
                         <div class="info-label">Balance</div>
                         <div class="info-value">€{{ accountBalanceValue(openedAccount.balance).toFixed(2) }}</div>
                     </div>
+                    <div class="info-card">
+                        <div class="info-label">Created</div>
+                        <div class="info-value">{{ accountCreatedLabel(openedAccount.accountId) }}</div>
+                    </div>
                 </div>
 
                 <div class="info-card" v-if="openedAccount.customerInformation || openedAccount.enterpriseInformation">
@@ -507,6 +511,43 @@
                 accountBalanceValue(balance) {
                     const parsedBalance = Number(balance ?? 0);
                     return Number.isFinite(parsedBalance) ? parsedBalance : 0;
+                },
+
+                accountCreatedLabel(accountId) {
+                    const creationTime = this.accountCreationTimeValue(accountId);
+                    if (!creationTime) {
+                        return '';
+                    }
+
+                    const creationDate = new Date(creationTime);
+                    if (Number.isNaN(creationDate.getTime())) {
+                        return '';
+                    }
+
+                    return creationDate.toLocaleString();
+                },
+
+                accountCreationTimeValue(accountId) {
+                    if (accountId === null || accountId === undefined) {
+                        return null;
+                    }
+
+                    const rawCreationTime = typeof accountId === 'object'
+                        ? (accountId.CreationTime ?? accountId.creationTime)
+                        : accountId;
+
+                    if (rawCreationTime === null || rawCreationTime === undefined) {
+                        return null;
+                    }
+
+                    const creationTime = Number(rawCreationTime);
+                    if (!Number.isFinite(creationTime)) {
+                        return null;
+                    }
+
+                    return creationTime > 1_000_000_000_000_000
+                        ? creationTime / 1_000_000
+                        : creationTime;
                 },
 
                 readInfoField(info, lowerKey, upperKey) {
