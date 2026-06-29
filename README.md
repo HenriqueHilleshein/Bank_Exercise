@@ -137,13 +137,11 @@ The repository includes a simple browser UI in [UI/index.html](UI/index.html) th
 ### Start the UI
 
 ```bash
-cd /path/to/Bank_Exercise
+cd /path/to/Bank_Exercise/UI
 python3 -m http.server 8000
 ```
 
 Then open `http://localhost:8000` in your browser.
-
-The root `index.html` forwards to the UI automatically, so the server root shows the app instead of a file listing.
 
 ### UI Workflow
 
