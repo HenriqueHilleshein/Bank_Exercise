@@ -5,9 +5,12 @@
 AccountService::AccountService(IDBConnection* dbConnection)
     : _dbConnection(dbConnection)
 {
+    if (_dbConnection == nullptr) {
+        throw std::invalid_argument("dbConnection cannot be null");
+    }
 }
 
-std::unique_ptr<IAccount> AccountService::getAccount(const int uniqueIdentifier) const
+std::unique_ptr<IAccount> AccountService::getAccount(const AccountId::Identifier uniqueIdentifier) const
 {
     std::unique_ptr<IAccount> account;
     DBOperationResult result = _dbConnection->getAccount(uniqueIdentifier, account);
@@ -21,7 +24,7 @@ std::unique_ptr<IAccount> AccountService::getAccount(const int uniqueIdentifier)
     return account;
 }
 
-AccountId AccountService::createEnterpriseAccount(const EnterpriseInformation enterpriseInformation) const
+AccountId AccountService::createEnterpriseAccount(const EnterpriseInformation& enterpriseInformation) const
 {
     AccountId accountId{};
     DBOperationResult result = _dbConnection->createEnterpriseAccount(enterpriseInformation, accountId);
@@ -31,7 +34,7 @@ AccountId AccountService::createEnterpriseAccount(const EnterpriseInformation en
     return accountId;
 }
 
-AccountId AccountService::createCustomerAccount(const CustomerInformation customerInformation) const
+AccountId AccountService::createCustomerAccount(const CustomerInformation& customerInformation) const
 {
     AccountId accountId{};
     DBOperationResult result = _dbConnection->createCustomerAccount(customerInformation, accountId);
@@ -41,7 +44,7 @@ AccountId AccountService::createCustomerAccount(const CustomerInformation custom
     return accountId;
 }
 
-AccountId AccountService::getAccountIdWithEnterpriseInformation(const EnterpriseInformation enterpriseInformation) const
+AccountId AccountService::getAccountIdWithEnterpriseInformation(const EnterpriseInformation& enterpriseInformation) const
 {
     AccountId accountId{};
     DBOperationResult result = _dbConnection->getAccountIdWithEnterpriseInformation(enterpriseInformation, accountId);
@@ -55,7 +58,7 @@ AccountId AccountService::getAccountIdWithEnterpriseInformation(const Enterprise
     return accountId;
 }
 
-AccountId AccountService::getAccountIdWithCustomerInformation(const CustomerInformation customerInformation) const
+AccountId AccountService::getAccountIdWithCustomerInformation(const CustomerInformation& customerInformation) const
 {
     AccountId accountId{};
     DBOperationResult result = _dbConnection->getAccountIdWithCustomerInformation(customerInformation, accountId);
@@ -69,8 +72,12 @@ AccountId AccountService::getAccountIdWithCustomerInformation(const CustomerInfo
     return accountId;
 }
 
-void AccountService::depositToAccount(const int uniqueIdentifier, const double amount) const
+void AccountService::depositToAccount(const AccountId::Identifier uniqueIdentifier, const double amount) const
 {
+    if (amount <= 0.0) {
+        throw std::invalid_argument("Amount must be greater than zero");
+    }
+
     std::unique_ptr<ITransaction> transaction;
     DBOperationResult result = _dbConnection->beginTransaction(transaction);
     if (result != DBOperationResult::Success) {
@@ -99,8 +106,12 @@ void AccountService::depositToAccount(const int uniqueIdentifier, const double a
     }
 }
 
-bool AccountService::withdrawFromAccount(const int uniqueIdentifier, const double amount) const
+bool AccountService::withdrawFromAccount(const AccountId::Identifier uniqueIdentifier, const double amount) const
 {
+    if (amount <= 0.0) {
+        throw std::invalid_argument("Amount must be greater than zero");
+    }
+
     std::unique_ptr<ITransaction> transaction;
     DBOperationResult result = _dbConnection->beginTransaction(transaction);
     if (result != DBOperationResult::Success) {
@@ -135,8 +146,12 @@ bool AccountService::withdrawFromAccount(const int uniqueIdentifier, const doubl
     return true;
 }
 
-void AccountService::transferBetweenAccounts(const int fromUniqueIdentifier, const int toUniqueIdentifier, const double amount) const
+void AccountService::transferBetweenAccounts(const AccountId::Identifier fromUniqueIdentifier, const AccountId::Identifier toUniqueIdentifier, const double amount) const
 {
+    if (amount <= 0.0) {
+        throw std::invalid_argument("Amount must be greater than zero");
+    }
+
     if (fromUniqueIdentifier == toUniqueIdentifier) {
         throw std::runtime_error("Cannot transfer to the same account");
     }

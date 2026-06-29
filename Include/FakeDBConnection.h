@@ -11,11 +11,11 @@ class FakeDBConnection : public IDBConnection
 public:
     FakeDBConnection();
 
-    DBOperationResult getAccount(const int uniqueIdentifier, std::unique_ptr<IAccount>& outAccount) const override;
-    DBOperationResult createEnterpriseAccount(const EnterpriseInformation enterpriseInformation, AccountId& outAccountId) override;
-    DBOperationResult createCustomerAccount(const CustomerInformation customerInformation, AccountId& outAccountId) override;
-    DBOperationResult getAccountIdWithEnterpriseInformation(const EnterpriseInformation enterpriseInformation, AccountId& outAccountId) const override;
-    DBOperationResult getAccountIdWithCustomerInformation(const CustomerInformation customerInformation, AccountId& outAccountId) const override;
+    DBOperationResult getAccount(const AccountId::Identifier uniqueIdentifier, std::unique_ptr<IAccount>& outAccount) const override;
+    DBOperationResult createEnterpriseAccount(const EnterpriseInformation& enterpriseInformation, AccountId& outAccountId) override;
+    DBOperationResult createCustomerAccount(const CustomerInformation& customerInformation, AccountId& outAccountId) override;
+    DBOperationResult getAccountIdWithEnterpriseInformation(const EnterpriseInformation& enterpriseInformation, AccountId& outAccountId) const override;
+    DBOperationResult getAccountIdWithCustomerInformation(const CustomerInformation& customerInformation, AccountId& outAccountId) const override;
     DBOperationResult beginTransaction(std::unique_ptr<ITransaction>& outTransaction) override;
 
 private:
@@ -36,26 +36,26 @@ private:
 
     struct AccountData
     {
-        int accountId;
+        AccountId::Identifier accountId;
         double balance;
         AccountId accountIdStruct;
         AccountType type;
     };
 
-    std::map<int, AccountData> _accounts;
-    std::map<int, EnterpriseInformation> _enterpriseInfoByAccountId;
-    std::map<int, CustomerInformation> _customerInfoByAccountId;
-    std::map<std::string, int> _enterpriseYTunnusToId;
-    std::map<std::string, int> _customerNameToId;
-    int _nextAccountId;
+    std::map<AccountId::Identifier, AccountData> _accounts;
+    std::map<AccountId::Identifier, EnterpriseInformation> _enterpriseInfoByAccountId;
+    std::map<AccountId::Identifier, CustomerInformation> _customerInfoByAccountId;
+    std::map<std::string, AccountId::Identifier> _enterpriseYTunnusToId;
+    std::map<std::string, AccountId::Identifier> _customerNameToId;
+    AccountId::Identifier _nextAccountId;
 
     bool _transactionActive;
-    std::map<int, AccountData> _transactionSnapshotAccounts;
-    std::map<int, EnterpriseInformation> _transactionSnapshotEnterpriseInfo;
-    std::map<int, CustomerInformation> _transactionSnapshotCustomerInfo;
-    std::map<std::string, int> _transactionSnapshotEnterpriseYTunnusToId;
-    std::map<std::string, int> _transactionSnapshotCustomerNameToId;
-    int _transactionSnapshotNextAccountId;
+    std::map<AccountId::Identifier, AccountData> _transactionSnapshotAccounts;
+    std::map<AccountId::Identifier, EnterpriseInformation> _transactionSnapshotEnterpriseInfo;
+    std::map<AccountId::Identifier, CustomerInformation> _transactionSnapshotCustomerInfo;
+    std::map<std::string, AccountId::Identifier> _transactionSnapshotEnterpriseYTunnusToId;
+    std::map<std::string, AccountId::Identifier> _transactionSnapshotCustomerNameToId;
+    AccountId::Identifier _transactionSnapshotNextAccountId;
 
-    int _generateNextAccountId();
+    AccountId::Identifier _generateNextAccountId();
 };

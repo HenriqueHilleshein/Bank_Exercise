@@ -18,7 +18,7 @@ public:
         }
     }
 
-    DBOperationResult getForUpdate(const int uniqueIdentifier, std::unique_ptr<IAccount>& outAccount) override
+    DBOperationResult getForUpdate(const AccountId::Identifier uniqueIdentifier, std::unique_ptr<IAccount>& outAccount) override
     {
         if (!_active) {
             return DBOperationResult::OperationFailed;
@@ -73,7 +73,7 @@ public:
 private:
     FakeDBConnection& _connection;
     bool _active;
-    std::unordered_set<int> _lockedAccounts;
+    std::unordered_set<AccountId::Identifier> _lockedAccounts;
 };
 
 FakeDBConnection::FakeDBConnection()
@@ -81,12 +81,12 @@ FakeDBConnection::FakeDBConnection()
 {
 }
 
-int FakeDBConnection::_generateNextAccountId()
+AccountId::Identifier FakeDBConnection::_generateNextAccountId()
 {
     return _nextAccountId++;
 }
 
-DBOperationResult FakeDBConnection::getAccount(const int uniqueIdentifier, std::unique_ptr<IAccount>& outAccount) const
+DBOperationResult FakeDBConnection::getAccount(const AccountId::Identifier uniqueIdentifier, std::unique_ptr<IAccount>& outAccount) const
 {
     auto it = _accounts.find(uniqueIdentifier);
     if (it == _accounts.end()) {
@@ -112,7 +112,7 @@ DBOperationResult FakeDBConnection::getAccount(const int uniqueIdentifier, std::
 
 DBOperationResult FakeDBConnection::updateAccountBalance(const IAccount& account)
 {
-    int uniqueIdentifier = account.getAccountId().UniqueIdentifier;
+    AccountId::Identifier uniqueIdentifier = account.getAccountId().UniqueIdentifier;
     auto it = _accounts.find(uniqueIdentifier);
     if (it == _accounts.end()) {
         return DBOperationResult::AccountNotFound;
@@ -122,14 +122,14 @@ DBOperationResult FakeDBConnection::updateAccountBalance(const IAccount& account
     return DBOperationResult::Success;
 }
 
-DBOperationResult FakeDBConnection::createEnterpriseAccount(const EnterpriseInformation enterpriseInformation, AccountId& outAccountId)
+DBOperationResult FakeDBConnection::createEnterpriseAccount(const EnterpriseInformation& enterpriseInformation, AccountId& outAccountId)
 {
     if (enterpriseInformation.YTunnus.empty() || enterpriseInformation.CompanyName.empty()) {
         return DBOperationResult::InvalidInput;
     }
 
-    int accountId = _generateNextAccountId();
-    long creationTime = std::chrono::system_clock::now().time_since_epoch().count();
+    AccountId::Identifier accountId = _generateNextAccountId();
+    AccountId::CreationTimestamp creationTime = std::chrono::system_clock::now().time_since_epoch().count();
     AccountId newAccountId{accountId, creationTime};
 
     AccountData data;
@@ -146,14 +146,14 @@ DBOperationResult FakeDBConnection::createEnterpriseAccount(const EnterpriseInfo
     return DBOperationResult::Success;
 }
 
-DBOperationResult FakeDBConnection::createCustomerAccount(const CustomerInformation customerInformation, AccountId& outAccountId)
+DBOperationResult FakeDBConnection::createCustomerAccount(const CustomerInformation& customerInformation, AccountId& outAccountId)
 {
     if (customerInformation.FirstName.empty() || customerInformation.LastName.empty()) {
         return DBOperationResult::InvalidInput;
     }
 
-    int accountId = _generateNextAccountId();
-    long creationTime = std::chrono::system_clock::now().time_since_epoch().count();
+    AccountId::Identifier accountId = _generateNextAccountId();
+    AccountId::CreationTimestamp creationTime = std::chrono::system_clock::now().time_since_epoch().count();
     AccountId newAccountId{accountId, creationTime};
 
     AccountData data;
@@ -172,14 +172,14 @@ DBOperationResult FakeDBConnection::createCustomerAccount(const CustomerInformat
     return DBOperationResult::Success;
 }
 
-DBOperationResult FakeDBConnection::getAccountIdWithEnterpriseInformation(const EnterpriseInformation enterpriseInformation, AccountId& outAccountId) const
+DBOperationResult FakeDBConnection::getAccountIdWithEnterpriseInformation(const EnterpriseInformation& enterpriseInformation, AccountId& outAccountId) const
 {
     auto it = _enterpriseYTunnusToId.find(enterpriseInformation.YTunnus);
     if (it == _enterpriseYTunnusToId.end()) {
         return DBOperationResult::AccountNotFound;
     }
 
-    int accountId = it->second;
+    AccountId::Identifier accountId = it->second;
     auto accountIt = _accounts.find(accountId);
     if (accountIt != _accounts.end()) {
         outAccountId = accountIt->second.accountIdStruct;
@@ -189,7 +189,7 @@ DBOperationResult FakeDBConnection::getAccountIdWithEnterpriseInformation(const 
     return DBOperationResult::OperationFailed;
 }
 
-DBOperationResult FakeDBConnection::getAccountIdWithCustomerInformation(const CustomerInformation customerInformation, AccountId& outAccountId) const
+DBOperationResult FakeDBConnection::getAccountIdWithCustomerInformation(const CustomerInformation& customerInformation, AccountId& outAccountId) const
 {
     std::string nameKey = customerInformation.FirstName + " " + customerInformation.LastName;
     auto it = _customerNameToId.find(nameKey);
@@ -197,7 +197,7 @@ DBOperationResult FakeDBConnection::getAccountIdWithCustomerInformation(const Cu
         return DBOperationResult::AccountNotFound;
     }
 
-    int accountId = it->second;
+    AccountId::Identifier accountId = it->second;
     auto accountIt = _accounts.find(accountId);
     if (accountIt != _accounts.end()) {
         outAccountId = accountIt->second.accountIdStruct;

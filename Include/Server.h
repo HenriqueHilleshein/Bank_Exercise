@@ -1,14 +1,14 @@
 #pragma once
 #include <httplib.h>
-#include <AccountService.h>
+#include <IAccountService.h>
 
 class Server {
 public:
-    Server(AccountService* accountService);
+    Server(IAccountService* accountService);
     void run(const std::string& host, int port);
 
 private:
     httplib::Server svr;
-    AccountService* _accountService;
+    IAccountService* _accountService;
     void setupRoutes();
 };

@@ -17,8 +17,7 @@ TEST_F(AccountTests, DepositIncreasesBalance) {
 
 TEST_F(AccountTests, DepositZeroAmount) {
     Account account(initialBalance, testAccountId);
-    account.deposit(0.0);
-    EXPECT_DOUBLE_EQ(account.getBalance(), 100.0);
+    EXPECT_THROW(account.deposit(0.0), std::invalid_argument);
 }
 
 TEST_F(AccountTests, DepositMultipleTimes) {
@@ -45,9 +44,7 @@ TEST_F(AccountTests, WithdrawDecreasesBalance) {
 
 TEST_F(AccountTests, WithdrawZeroAmount) {
     Account account(initialBalance, testAccountId);
-    bool success = account.withdraw(0.0);
-    EXPECT_TRUE(success);
-    EXPECT_DOUBLE_EQ(account.getBalance(), 100.0);
+    EXPECT_THROW(account.withdraw(0.0), std::invalid_argument);
 }
 
 TEST_F(AccountTests, WithdrawInsufficientFunds) {
@@ -108,8 +105,7 @@ TEST_F(AccountTests, ConstructorWithZeroBalance) {
 
 // Test constructor with negative balance (edge case)
 TEST_F(AccountTests, ConstructorWithNegativeBalance) {
-    Account account(-50.0, testAccountId);
-    EXPECT_DOUBLE_EQ(account.getBalance(), -50.0);
+    EXPECT_THROW(Account(-50.0, testAccountId), std::invalid_argument);
 }
 
 // Test precision with decimal amounts

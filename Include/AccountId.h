@@ -1,9 +1,13 @@
 #pragma once
+#include <cstdint>
 #include <nlohmann/json.hpp>
 
 struct AccountId {
-    int UniqueIdentifier;
-    long CreationTime;
+    using Identifier = int;
+    using CreationTimestamp = std::int64_t;
+
+    Identifier UniqueIdentifier;
+    CreationTimestamp CreationTime;
 };
 
 

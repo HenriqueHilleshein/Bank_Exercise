@@ -137,11 +137,8 @@ TEST_F(AccountServiceTests, DepositMultipleTimes) {
 TEST_F(AccountServiceTests, DepositZeroAmount) {
     CustomerInformation info{"John", "Doe"};
     AccountId accountId = service.createCustomerAccount(info);
-    
-    service.depositToAccount(accountId.UniqueIdentifier, 0.0);
-    
-    std::unique_ptr<IAccount> account = service.getAccount(accountId.UniqueIdentifier);
-    EXPECT_DOUBLE_EQ(account->getBalance(), 0.0);
+
+    EXPECT_THROW(service.depositToAccount(accountId.UniqueIdentifier, 0.0), std::invalid_argument);
 }
 
 TEST_F(AccountServiceTests, DepositThrowsOnNonExistentAccount) {
@@ -198,12 +195,8 @@ TEST_F(AccountServiceTests, WithdrawZeroAmount) {
     CustomerInformation info{"John", "Doe"};
     AccountId accountId = service.createCustomerAccount(info);
     service.depositToAccount(accountId.UniqueIdentifier, 100.0);
-    
-    bool success = service.withdrawFromAccount(accountId.UniqueIdentifier, 0.0);
-    
-    EXPECT_TRUE(success);
-    std::unique_ptr<IAccount> account = service.getAccount(accountId.UniqueIdentifier);
-    EXPECT_DOUBLE_EQ(account->getBalance(), 100.0);
+
+    EXPECT_THROW(service.withdrawFromAccount(accountId.UniqueIdentifier, 0.0), std::invalid_argument);
 }
 
 TEST_F(AccountServiceTests, WithdrawThrowsOnNonExistentAccount) {
@@ -271,13 +264,7 @@ TEST_F(AccountServiceTests, TransferZeroAmount) {
     service.depositToAccount(id1.UniqueIdentifier, 1000.0);
     service.depositToAccount(id2.UniqueIdentifier, 500.0);
     
-    service.transferBetweenAccounts(id1.UniqueIdentifier, id2.UniqueIdentifier, 0.0);
-    
-    std::unique_ptr<IAccount> account1 = service.getAccount(id1.UniqueIdentifier);
-    std::unique_ptr<IAccount> account2 = service.getAccount(id2.UniqueIdentifier);
-    
-    EXPECT_DOUBLE_EQ(account1->getBalance(), 1000.0);
-    EXPECT_DOUBLE_EQ(account2->getBalance(), 500.0);
+    EXPECT_THROW(service.transferBetweenAccounts(id1.UniqueIdentifier, id2.UniqueIdentifier, 0.0), std::invalid_argument);
 }
 
 TEST_F(AccountServiceTests, TransferToSameAccountWorks) {

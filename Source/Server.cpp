@@ -4,7 +4,16 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 
-Server::Server(AccountService* accountService)
+namespace {
+
+AccountId::Identifier parseIdentifier(const std::string& rawIdentifier)
+{
+    return std::stoi(rawIdentifier);
+}
+
+} // namespace
+
+Server::Server(IAccountService* accountService)
     : _accountService(accountService)
 {
     setupRoutes();
@@ -37,7 +46,7 @@ void Server::setupRoutes()
 
     svr.Get(R"(/accounts/(\d+))", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            int uniqueIdentifier = std::stoi(req.matches[1]);
+            AccountId::Identifier uniqueIdentifier = parseIdentifier(req.matches[1]);
             std::unique_ptr<IAccount> account = _accountService->getAccount(uniqueIdentifier);
             res.set_content(account->getAccountDetails().dump(), "application/json");
         } catch (const std::exception& ex) {
@@ -97,7 +106,7 @@ void Server::setupRoutes()
     svr.Post(R"(/accounts/(\d+)/deposit)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             const auto request = ApiRequestValidation::parseAccountAmountRequest(req.body);
-            int uniqueIdentifier = std::stoi(req.matches[1]);
+            AccountId::Identifier uniqueIdentifier = parseIdentifier(req.matches[1]);
             _accountService->depositToAccount(uniqueIdentifier, request.amount);
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
         } catch (const std::exception& ex) {
@@ -109,7 +118,7 @@ void Server::setupRoutes()
     svr.Post(R"(/accounts/(\d+)/withdraw)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             const auto request = ApiRequestValidation::parseAccountAmountRequest(req.body);
-            int uniqueIdentifier = std::stoi(req.matches[1]);
+            AccountId::Identifier uniqueIdentifier = parseIdentifier(req.matches[1]);
             bool success = _accountService->withdrawFromAccount(uniqueIdentifier, request.amount);
             if (!success) {
                 res.status = 400;
@@ -126,7 +135,7 @@ void Server::setupRoutes()
     svr.Post(R"(/accounts/(\d+)/transfer)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
             const auto request = ApiRequestValidation::parseTransferRequest(req.body);
-            int fromUniqueIdentifier = std::stoi(req.matches[1]);
+            AccountId::Identifier fromUniqueIdentifier = parseIdentifier(req.matches[1]);
             _accountService->transferBetweenAccounts(fromUniqueIdentifier, request.toUniqueIdentifier, request.amount);
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
         } catch (const std::exception& ex) {

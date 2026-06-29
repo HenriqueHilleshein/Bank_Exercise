@@ -5,6 +5,8 @@
 class IAccount
 {
 public:
+    virtual ~IAccount() = default;
+
     virtual double getBalance() const = 0;
     virtual void deposit(const double amount) = 0;
     virtual bool withdraw(const double amount) = 0;

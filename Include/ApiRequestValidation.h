@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AccountId.h>
 #include <nlohmann/json.hpp>
 
 #include <stdexcept>
@@ -32,7 +33,7 @@ struct AccountAmountRequest {
 };
 
 struct TransferRequest {
-    int toUniqueIdentifier;
+    AccountId::Identifier toUniqueIdentifier;
     double amount;
 };
 
@@ -89,7 +90,7 @@ inline double requirePositiveDoubleField(const nlohmann::json& body, const char*
     return value;
 }
 
-inline int requireIntegerField(const nlohmann::json& body, const char* fieldName)
+inline AccountId::Identifier requireIntegerField(const nlohmann::json& body, const char* fieldName)
 {
     if (!body.contains(fieldName)) {
         throw std::invalid_argument(std::string("Missing ") + fieldName);
@@ -99,7 +100,7 @@ inline int requireIntegerField(const nlohmann::json& body, const char* fieldName
         throw std::invalid_argument(std::string("Field ") + fieldName + " must be an integer");
     }
 
-    return body.at(fieldName).get<int>();
+    return body.at(fieldName).get<AccountId::Identifier>();
 }
 
 inline CustomerAccountRequest parseCustomerAccountRequest(const std::string& body)
