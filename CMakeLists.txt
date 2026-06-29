@@ -50,11 +50,11 @@ enable_testing()
 
 # Unit Tests
 add_executable(Bank_Exercise_Tests
-    Tests/AccountTests.cpp
-    Tests/CustomerAccountTests.cpp
-    Tests/EnterpriseAccountTests.cpp
-    Tests/AccountServiceTests.cpp
-    Tests/FakeDBConnectionTests.cpp
+    UnitTests/AccountTests.cpp
+    UnitTests/CustomerAccountTests.cpp
+    UnitTests/EnterpriseAccountTests.cpp
+    UnitTests/AccountServiceTests.cpp
+    UnitTests/FakeDBConnectionTests.cpp
     Source/Account.cpp
     Source/CustomerAccount.cpp
     Source/EnterpriseAccount.cpp

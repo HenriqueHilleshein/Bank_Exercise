@@ -54,7 +54,10 @@ Bank_Exercise/
 │   ├── FakeDBConnection.cpp
 │   ├── Server.cpp
 │   └── ...
-├── Tests/                      # Unit tests
+├── UI/                         # Simple browser-based UI
+│   ├── index.html
+│   └── README.md
+├── UnitTests/                  # Unit tests
 │   ├── AccountTests.cpp
 │   ├── CustomerAccountTests.cpp
 │   ├── EnterpriseAccountTests.cpp
@@ -126,6 +129,31 @@ Server listening on 0.0.0.0:8080
 ```
 
 The server will now listen on `http://localhost:8080`
+
+## Running the Simple UI
+
+The repository includes a simple browser UI in [UI/index.html](UI/index.html) that connects to the REST API server.
+
+### Start the UI
+
+```bash
+cd UI
+python3 -m http.server 8000
+```
+
+Then open `http://localhost:8000` in your browser.
+
+### UI Workflow
+
+1. Create a customer or enterprise account, or retrieve an existing account by ID.
+2. Use the opened account to deposit, withdraw, or transfer money.
+3. If you need an account number from customer or enterprise details, use the lookup forms in the UI.
+
+### UI Requirements
+
+- The Bank Exercise server must already be running on `http://localhost:8080`
+- The UI is a static page and does not require a build step
+- The UI uses the same REST API endpoints documented below
 
 ### Testing API Endpoints
 
@@ -395,7 +423,7 @@ curl http://localhost:8080/health
 
 ## Adding New Tests
 
-1. Create a new test file in `Tests/` directory
+1. Create a new test file in `UnitTests/` directory
 2. Include the necessary headers and gtest
 3. Add test cases following the existing pattern
 4. Update `CMakeLists.txt` to include the new test file
@@ -419,7 +447,7 @@ TEST_F(YourClassTests, TestSomething) {
 
 1. Define interfaces in `Include/`
 2. Implement in `Source/`
-3. Add unit tests in `Tests/`
+3. Add unit tests in `UnitTests/`
 4. Rebuild and run tests
 
 ## License
