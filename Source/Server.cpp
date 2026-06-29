@@ -1,4 +1,5 @@
 #include <Server.h>
+#include <ApiRequestValidation.h>
 #include <nlohmann/json.hpp>
 #include <iostream>
 
@@ -46,17 +47,8 @@ void Server::setupRoutes()
 
     svr.Post("/accounts/enterprises", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("yTunnus") || !json.contains("companyName")) {
-                res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing yTunnus or companyName"}}.dump(), "application/json");
-                return;
-            }
-
-            EnterpriseInformation info{
-                json["yTunnus"].get<std::string>(),
-                json["companyName"].get<std::string>()
-            };
+            const auto request = ApiRequestValidation::parseEnterpriseAccountRequest(req.body);
+            EnterpriseInformation info{request.yTunnus, request.companyName};
             AccountId accountId = _accountService->createEnterpriseAccount(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
@@ -67,17 +59,8 @@ void Server::setupRoutes()
 
     svr.Post("/accounts/customers", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("firstName") || !json.contains("lastName")) {
-                res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing firstName or lastName"}}.dump(), "application/json");
-                return;
-            }
-
-            CustomerInformation info{
-                json["firstName"].get<std::string>(),
-                json["lastName"].get<std::string>()
-            };
+            const auto request = ApiRequestValidation::parseCustomerAccountRequest(req.body);
+            CustomerInformation info{request.firstName, request.lastName};
             AccountId accountId = _accountService->createCustomerAccount(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
@@ -88,17 +71,8 @@ void Server::setupRoutes()
 
     svr.Post("/accounts/enterprises/lookup", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("yTunnus")) {
-                res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing yTunnus"}}.dump(), "application/json");
-                return;
-            }
-
-            EnterpriseInformation info{
-                json["yTunnus"].get<std::string>(),
-                json.value("companyName", std::string())
-            };
+            const auto request = ApiRequestValidation::parseEnterpriseLookupRequest(req.body);
+            EnterpriseInformation info{request.yTunnus, request.companyName};
             AccountId accountId = _accountService->getAccountIdWithEnterpriseInformation(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
@@ -109,17 +83,8 @@ void Server::setupRoutes()
 
     svr.Post("/accounts/customers/lookup", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("firstName") || !json.contains("lastName")) {
-                res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing firstName or lastName"}}.dump(), "application/json");
-                return;
-            }
-
-            CustomerInformation info{
-                json["firstName"].get<std::string>(),
-                json["lastName"].get<std::string>()
-            };
+            const auto request = ApiRequestValidation::parseCustomerLookupRequest(req.body);
+            CustomerInformation info{request.firstName, request.lastName};
             AccountId accountId = _accountService->getAccountIdWithCustomerInformation(info);
             res.set_content(nlohmann::json{{"accountId", accountId_to_json(accountId)}}.dump(), "application/json");
         } catch (const std::exception& ex) {
@@ -130,16 +95,9 @@ void Server::setupRoutes()
 
     svr.Post(R"(/accounts/(\d+)/deposit)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("amount")) {
-                res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing amount"}}.dump(), "application/json");
-                return;
-            }
-
+            const auto request = ApiRequestValidation::parseAccountAmountRequest(req.body);
             int uniqueIdentifier = std::stoi(req.matches[1]);
-            double amount = json["amount"].get<double>();
-            _accountService->depositToAccount(uniqueIdentifier, amount);
+            _accountService->depositToAccount(uniqueIdentifier, request.amount);
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
         } catch (const std::exception& ex) {
             res.status = 400;
@@ -149,16 +107,9 @@ void Server::setupRoutes()
 
     svr.Post(R"(/accounts/(\d+)/withdraw)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("amount")) {
-                res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing amount"}}.dump(), "application/json");
-                return;
-            }
-
+            const auto request = ApiRequestValidation::parseAccountAmountRequest(req.body);
             int uniqueIdentifier = std::stoi(req.matches[1]);
-            double amount = json["amount"].get<double>();
-            bool success = _accountService->withdrawFromAccount(uniqueIdentifier, amount);
+            bool success = _accountService->withdrawFromAccount(uniqueIdentifier, request.amount);
             if (!success) {
                 res.status = 400;
                 res.set_content(nlohmann::json{{"success", false}, {"error", "Insufficient funds"}}.dump(), "application/json");
@@ -173,17 +124,9 @@ void Server::setupRoutes()
 
     svr.Post(R"(/accounts/(\d+)/transfer)", [this](const httplib::Request& req, httplib::Response& res) {
         try {
-            auto json = nlohmann::json::parse(req.body);
-            if (!json.contains("toUniqueIdentifier") || !json.contains("amount")) {
-                res.status = 400;
-                res.set_content(nlohmann::json{{"error", "Missing toUniqueIdentifier or amount"}}.dump(), "application/json");
-                return;
-            }
-
+            const auto request = ApiRequestValidation::parseTransferRequest(req.body);
             int fromUniqueIdentifier = std::stoi(req.matches[1]);
-            int toUniqueIdentifier = json["toUniqueIdentifier"].get<int>();
-            double amount = json["amount"].get<double>();
-            _accountService->transferBetweenAccounts(fromUniqueIdentifier, toUniqueIdentifier, amount);
+            _accountService->transferBetweenAccounts(fromUniqueIdentifier, request.toUniqueIdentifier, request.amount);
             res.set_content(nlohmann::json{{"success", true}}.dump(), "application/json");
         } catch (const std::exception& ex) {
             res.status = 400;

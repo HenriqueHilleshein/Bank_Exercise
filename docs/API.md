@@ -209,6 +209,10 @@ If a request is invalid or the requested operation fails, the API returns a `400
 }
 ```
 
+Request bodies are parsed and validated before the account service is called. Missing fields, wrong field types, or malformed JSON return `400` with a JSON error message.
+
+For deposit, withdraw, and transfer requests, `amount` must be a positive number greater than zero.
+
 ## Notes
 - Account creation uses a fake in-memory database.
 - Deposit, withdraw, and transfer operations are executed using transaction semantics.
